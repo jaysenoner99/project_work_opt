@@ -1,3 +1,4 @@
+import numpy as np
 
 from Dataset import Dataset
 from solvers import Solver
@@ -6,16 +7,10 @@ from solvers import Solver
 if __name__ == '__main__':
     dataset = Dataset()
     solver = Solver()
-    X, weights, labels = dataset.generateData(500,20)
-    print("Dataset: \n")
-    print(X)
-    print("Weights: \n")
-    print(weights)
-    print("Labels: \n")
-    print(labels)
-    print(dataset.computeLogLoss(weights,1))
-    print("gradient:")
-    print(dataset.gradient(weights))
-    print("hessian:")
-    print(dataset.hessian(weights))
-    print(solver.standardNewton(dataset, 1000, weights, 0.001, 0.001))
+    X, weights, labels = dataset.generateData(5000,20)
+
+    num_iter,solution = solver.gradientDescent(dataset,weights)
+    print("gradient norm at the solution point:",dataset.gradient(solution))
+    print("Number of iterations:",num_iter)
+    print("Solution:",solution)
+    print("Percentage of good classifications:",dataset.test(solution))

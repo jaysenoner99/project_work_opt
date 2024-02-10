@@ -1,6 +1,9 @@
 import numpy as np
 from numpy import linalg as la
 
+# Prediciton threshold
+threshold = 0
+
 
 class Dataset:
 
@@ -45,3 +48,20 @@ class Dataset:
             d[i] = self.sigmoid(y_i * np.dot(weights, x_i.T)) * self.sigmoid(-y_i * np.dot(weights, x_i))
         D = np.diag(d)
         return np.dot(np.dot(self.data.T, D), self.data)
+
+    def predict(self, weights, data):
+        if self.sigmoid(np.dot(weights, data.T)) >= threshold:
+            return 1
+        else:
+            return -1
+
+    def test(self, final_weights):
+        num_examples = self.data.shape[0]
+        self.generateData(num_examples,self.data.shape[1]-1)
+        good = 0
+        for data, label in zip(self.data, self.labels):
+            prediction = self.predict(final_weights, data)
+            if prediction == label:
+                good += 1
+
+        return good/num_examples
