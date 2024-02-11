@@ -48,13 +48,17 @@ class Dataset:
         grad = np.dot(self.data.T, r) + 2 * lambda_reg * weights
         return grad
 
+    def better_gradient(self, weights):
+        r = np.multiply(-self.labels, self.sigmoid(np.multiply(-self.labels, np.dot(self.data,weights))))
+        return np.matmul(self.data.T, r) + 2 * lambda_reg * weights
+
     def hessian(self, weights):
         d = np.zeros(self.data.shape[0])
         i = 0
         for x_i, y_i in zip(self.data, self.labels):
             d[i] = self.sigmoid(y_i * np.dot(weights, x_i.T)) * self.sigmoid(-y_i * np.dot(weights, x_i))
         D = np.diag(d)
-        return np.dot(np.dot(self.data.T, D), self.data) + 2*lambda_reg* np.identity(weights.shape)
+        return np.dot(np.dot(self.data.T, D), self.data) + 2 * lambda_reg * np.identity(weights.shape)
 
     def predict(self, weights, data):
         if self.sigmoid(np.dot(weights, data.T)) >= threshold:
@@ -62,9 +66,9 @@ class Dataset:
         else:
             return -1
 
-    def test_prediction(self,num_examples, true_weights, final_weights):
+    def test_prediction(self, num_examples, true_weights, final_weights):
 
-        X,y = self.generate_examples(num_examples,self.data.shape[1]-1,true_weights)
+        X, y = self.generate_examples(num_examples, self.data.shape[1] - 1, true_weights)
         good = 0
         for data, label in zip(X, y):
             prediction = self.predict(final_weights, data)
