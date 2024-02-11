@@ -12,5 +12,7 @@ if __name__ == '__main__':
     num_iter,solution = solver.gradientDescent(dataset,initial_weights)
     print("Number of iterations:",num_iter)
     print("Solution:",solution)
+    print("Real optimal value",dataset.computeLogLoss(true_weights))
+    print("Optimal value found:",dataset.computeLogLoss(solution))
     print("True weights:",true_weights)
     print("Percentage of good classifications:", dataset.test_prediction(200,true_weights,solution))
