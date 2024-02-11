@@ -7,10 +7,10 @@ from solvers import Solver
 if __name__ == '__main__':
     dataset = Dataset()
     solver = Solver()
-    X, weights, labels = dataset.generateData(5000,20)
-
-    num_iter,solution = solver.gradientDescent(dataset,weights)
-    print("gradient norm at the solution point:",dataset.gradient(solution))
+    X, true_weights, labels = dataset.generate_dataset(500, 20)
+    initial_weights = np.zeros(X.shape[1])
+    num_iter,solution = solver.gradientDescent(dataset,initial_weights)
     print("Number of iterations:",num_iter)
     print("Solution:",solution)
-    print("Percentage of good classifications:",dataset.test(solution))
+    print("True weights:",true_weights)
+    print("Percentage of good classifications:", dataset.test_prediction(200,true_weights,solution))

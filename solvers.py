@@ -2,15 +2,15 @@ import numpy as np
 from numpy import linalg as la
 
 # Parameters for Armijo line_search
-gamma = 0.4
-delta = 0.5
-max_iter_armijo = 10000
+gamma = 0.35
+delta = 0.25
+max_iter_armijo = 1000
 initial_stepsize = 1
 
 # Solver parameters
-max_iter = 1000000
+max_iter = 1000
 tol = 0.00001
-eps = 0.00001
+eps = 0.000001
 
 
 class Solver:
@@ -36,6 +36,8 @@ class Solver:
         print("Armijo: number of iterations > max_iter_armijo")
         return alpha
 
+    #def exactLineSearch(self, dataset, weights, direction):
+
     def gradientDescent(self, dataset, initial_weights):
         weights = initial_weights
         for i in range(max_iter):
@@ -44,10 +46,8 @@ class Solver:
             print("Gradient norm at iteration " + str(i) + ": " + str(gradient_norm))
             if gradient_norm < eps:
                 return i,weights
-            old_weights = weights
             step_size = self.armijoLineSearch(dataset, weights, direction)
-            weights = weights - step_size * direction
-           # if la.norm(weights - old_weights) < tol:
-           #     return i,weights
+            weights = weights + step_size * direction
+
         print("Gradient Descent: number of iterations > max_iter")
-        return weights
+        return i, weights
