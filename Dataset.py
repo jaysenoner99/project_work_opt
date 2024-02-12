@@ -6,7 +6,6 @@ threshold = 0
 # Regularization strength
 lambda_reg = 1
 
-
 class Dataset:
 
     def __init__(self):
@@ -17,13 +16,9 @@ class Dataset:
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
 
-    def computeLogLoss(self, weights):
-        loss = 0
-        for x_i, y_i in zip(self.data, self.labels):
-            loss = loss + np.log(1 + np.exp(-y_i * np.dot(weights, x_i.T)))
-        loss = loss + lambda_reg * la.norm(weights) ** 2
-
-        return loss
+    def compute_log_loss(self, weights):
+        return np.sum(np.log(1 + np.exp(-self.labels * np.dot(self.data, weights)))) + lambda_reg * la.norm(
+            weights) ** 2
 
     def generate_dataset(self, num_observations, num_features):
         true_weights = self.generate_true_weights(num_features)
@@ -40,25 +35,21 @@ class Dataset:
         return self.rng.standard_normal(num_features + 1)
 
     def gradient(self, weights):
-        r = np.zeros(self.data.shape[0])
-        i = 0
-        for x_i, y_i in zip(self.data, self.labels):
-            r[i] = -1 * y_i * self.sigmoid(-y_i * np.dot(weights, x_i.T))
-            i += 1
-        grad = np.dot(self.data.T, r) + 2 * lambda_reg * weights
-        return grad
-
-    def better_gradient(self, weights):
-        r = np.multiply(-self.labels, self.sigmoid(np.multiply(-self.labels, np.dot(self.data,weights))))
+        r = np.multiply(-self.labels, self.sigmoid(np.multiply(-self.labels, np.dot(self.data, weights))))
         return np.matmul(self.data.T, r) + 2 * lambda_reg * weights
 
-    def hessian(self, weights):
+    def hessian(self, weights,hess_trick=0):
         d = np.zeros(self.data.shape[0])
         i = 0
         for x_i, y_i in zip(self.data, self.labels):
             d[i] = self.sigmoid(y_i * np.dot(weights, x_i.T)) * self.sigmoid(-y_i * np.dot(weights, x_i))
         D = np.diag(d)
-        return np.dot(np.dot(self.data.T, D), self.data) + 2 * lambda_reg * np.identity(weights.shape)
+        return np.dot(np.dot(self.data.T, D), self.data) + 2 * lambda_reg * np.identity(weights.shape[0]) + hess_trick * 1e-12 * np.identity(weights.shape[0])
+
+    def compute_loss_step_derivative(self, weights, alpha, direction):
+        return np.sum(
+            -self.labels * self.sigmoid(-self.labels * np.dot(self.data, weights + alpha * direction)) * np.dot(
+                self.data, direction))
 
     def predict(self, weights, data):
         if self.sigmoid(np.dot(weights, data.T)) >= threshold:
@@ -76,3 +67,14 @@ class Dataset:
                 good += 1
 
         return good / num_examples
+
+    def test_solver(self, initial_weights,true_weights, solver_to_call):
+        num_iter,solution = solver_to_call(self, initial_weights)
+        print("Solver:",solver_to_call.__name__)
+        print("Number of iterations:", num_iter)
+        print("Solution:", solution)
+        print("Real optimal value", self.compute_log_loss(true_weights))
+        print("Optimal value found:", self.compute_log_loss(solution))
+        print("True weights:", true_weights)
+        print("Percentage of good classifications:", self.test_prediction(200, true_weights, solution))
+        print("\n")
