@@ -79,7 +79,6 @@ class Dataset:
 
     def test_solver(self, initial_weights, solver_to_call):
         num_iter, solution,error_array = solver_to_call(self, initial_weights)
-        fig_all, ax_all = plt.subplots()
         solver_name = solver_to_call.__name__
         print("Solver:", solver_name)
         print("Number of iterations:", num_iter)
@@ -91,9 +90,10 @@ class Dataset:
         print("True weights:", self.optimal_point)
         print("Percentage of good classifications:", self.test_prediction(200, self.optimal_point, solution))
         print("\n")
-        iter_array = np.array(range(len(error_array)))
-        self.plot(solver_name, iter_array, error_array)
-        self.addToPlot(ax_all, iter_array,error_array)
+        #iter_array = np.array(range(len(error_array)))
+        #self.plot(solver_name, iter_array, error_array)
+        return error_array
+
 
     def plot(self, file_name,x,y):
         fig, ax = plt.subplots()
@@ -102,7 +102,5 @@ class Dataset:
         plt.grid(True)
         plt.savefig("Plot/" + file_name)
 
-    def addToPlot(self, ax, iter_array, error_array):
-        ax.plot(iter_array, error_array)
-        plt.grid(True)
+
 
