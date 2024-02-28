@@ -1,6 +1,7 @@
 import numpy as np
 from numpy import linalg as la
 import scipy.optimize as sc
+import matplotlib.pyplot as plt
 
 # Prediciton threshold
 threshold = 0.5
@@ -74,12 +75,13 @@ class Dataset:
             prediction = self.predict(final_weights, data)
             if prediction == label:
                 good += 1
-
         return good / num_examples
 
     def test_solver(self, initial_weights, solver_to_call):
-        num_iter, solution = solver_to_call(self, initial_weights)
-        print("Solver:", solver_to_call.__name__)
+        num_iter, solution,error_array = solver_to_call(self, initial_weights)
+        fig_all, ax_all = plt.subplots()
+        solver_name = solver_to_call.__name__
+        print("Solver:", solver_name)
         print("Number of iterations:", num_iter)
         print("Solution:", solution)
         print("Real optimal value", self.compute_log_loss(self.optimal_point))
@@ -89,3 +91,18 @@ class Dataset:
         print("True weights:", self.optimal_point)
         print("Percentage of good classifications:", self.test_prediction(200, self.optimal_point, solution))
         print("\n")
+        iter_array = np.array(range(len(error_array)))
+        self.plot(solver_name, iter_array, error_array)
+        self.addToPlot(ax_all, iter_array,error_array)
+
+    def plot(self, file_name,x,y):
+        fig, ax = plt.subplots()
+        plt.title(file_name)
+        ax.plot(x,y)
+        plt.grid(True)
+        plt.savefig("Plot/" + file_name)
+
+    def addToPlot(self, ax, iter_array, error_array):
+        ax.plot(iter_array, error_array)
+        plt.grid(True)
+
