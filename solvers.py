@@ -42,6 +42,10 @@ class Solver:
 
     # Standard Newton method (alpha = 1)
     def standard_newton_cholesky(self, dataset, initial_weights):
+        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True:
+            hess_trick = 1
+        else:
+            hess_trick = 0
         weights = initial_weights
         error = np.array([], dtype='float64')
         optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
@@ -50,7 +54,7 @@ class Solver:
             grad = dataset.gradient(weights)
             if la.norm(grad) < eps:
                 return i,weights, error
-            hess = dataset.hessian(weights, 1)
+            hess = dataset.hessian(weights, hess_trick)
             L = la.cholesky(hess)
             w = la.solve(L, -grad)
             direction = la.solve(L.T, w)
@@ -68,15 +72,21 @@ class Solver:
         return i, weights, error
 
     def standard_newton(self, dataset, initial_weights):
+        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True:
+            hess_trick = 1
+        else:
+            hess_trick = 0
         weights = initial_weights
+        count_armijo = 0
         error = np.array([],dtype = 'float64')
         optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
         error = np.append(error, dataset.compute_log_loss(initial_weights) - optimal_loss)
         for i in range(max_iter):
             grad = dataset.gradient(weights)
             if la.norm(grad) < eps:
+                print("iter e armijo steps:", i, count_armijo)
                 return i,weights,error
-            hess = dataset.hessian(weights, 1)
+            hess = dataset.hessian(weights, hess_trick)
             direction = la.solve(hess, -grad)
             new_weights = weights + direction
 
@@ -86,12 +96,14 @@ class Solver:
 
             # If the objective function has increased, compute armijo step.
             if  new_loss >= old_loss:
+                count_armijo += 1
                 step_size = self.armijo_line_search(dataset, weights, direction)
                 new_weights = weights + step_size * direction
 
             weights = new_weights
             error = np.append(error, dataset.compute_log_loss(weights) - optimal_loss)
         print("Standard newton method exceeded max iter")
+        print("iter e armijo steps:" ,i, count_armijo)
         return i, weights, error
 
     # Gradient Descent algorithm
@@ -112,9 +124,9 @@ class Solver:
 
     #Gradient descent with exact line search
     # TODO: make it not use scipy D:
-    def gradient_descent_exact(self,dataset, initial_weights):
+    def gradient_descent_exact(self, dataset, initial_weights):
         weights = initial_weights
-        error = np.array([],dtype = 'float64')
+        error = np.array([], dtype='float64')
         optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
         error = np.append(error, dataset.compute_log_loss(initial_weights) - optimal_loss)
         for i in range(max_iter):
@@ -129,6 +141,10 @@ class Solver:
 
     # Newton method with armijo line search and cholesky decomposition
     def newton_armijo_cholesky(self, dataset, initial_weights):
+        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True:
+            hess_trick = 1
+        else:
+            hess_trick = 0
         weights = initial_weights
         error = np.array([],dtype = 'float64')
         optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
@@ -137,7 +153,7 @@ class Solver:
             grad = dataset.gradient(weights)
             if la.norm(grad) < eps:
                 return i,weights, error
-            hess = dataset.hessian(weights)
+            hess = dataset.hessian(weights,hess_trick)
             L = la.cholesky(hess)
             w = la.solve(L, -grad)
             direction = la.solve(L.T, w)
@@ -149,6 +165,10 @@ class Solver:
 
     #Newton method with armijo line search
     def newton_armijo(self, dataset, initial_weights):
+        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True:
+            hess_trick = 1
+        else:
+            hess_trick = 0
         weights = initial_weights
         error = np.array([], dtype='float64')
         optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
@@ -157,7 +177,7 @@ class Solver:
             grad = dataset.gradient(weights)
             if la.norm(grad) < eps:
                 return i,weights, error
-            hess = dataset.hessian(weights)
+            hess = dataset.hessian(weights, hess_trick)
             direction = la.solve(hess, -grad)
             step_size = self.armijo_line_search(dataset, weights, direction)
             weights = weights + step_size * direction
@@ -167,6 +187,10 @@ class Solver:
 
     #Greedy Newton method(Newton method with exact line search)
     def greedy_newton(self, dataset, initial_weights):
+        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True:
+            hess_trick = 1
+        else:
+            hess_trick = 0
         weights = initial_weights
         error = np.array([], dtype='float64')
         optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
@@ -175,7 +199,7 @@ class Solver:
             grad = dataset.gradient(weights)
             if la.norm(grad) < eps:
                 return i,weights, error
-            hess = dataset.hessian(weights)
+            hess = dataset.hessian(weights, hess_trick)
             direction = la.solve(hess, -grad)
             step_size = opt.minimize_scalar(dataset.step_log_loss,args=(weights,direction)).x
             weights = weights + step_size * direction
@@ -184,6 +208,10 @@ class Solver:
         return i,weights, error
 
     def hybrid_newton(self,dataset, initial_weights):
+        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True:
+            hess_trick = 1
+        else:
+            hess_trick = 0
         weights = initial_weights
         error = np.array([], dtype='float64')
         optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
@@ -192,7 +220,7 @@ class Solver:
             grad = dataset.gradient(weights)
             if la.norm(grad) < eps:
                 return i,weights, error
-            hess = dataset.hessian(weights)
+            hess = dataset.hessian(weights, hess_trick)
             newton_direction = la.solve(hess,-grad)
 
             newton_pure_step = weights + newton_direction

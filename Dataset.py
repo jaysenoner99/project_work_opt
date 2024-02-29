@@ -14,8 +14,9 @@ class Dataset:
     def __init__(self):
         self.data = None
         self.labels = None
-        self.rng = np.random.default_rng()
+        self.rng = np.random.default_rng(111)
         self.optimal_point = None
+        self.repeated_features = False
 
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
@@ -24,19 +25,26 @@ class Dataset:
         return np.sum(np.log(1 + np.exp(-self.labels * np.dot(self.data, weights)))) + lambda_reg * la.norm(
             weights) ** 2
 
-    def generate_dataset(self, num_observations, num_features):
+    def generate_dataset(self, num_observations, num_features, repeated_features):
         true_weights = self.generate_true_weights(num_features)
-        self.data, self.labels = self.generate_examples(num_observations, num_features, true_weights)
+        self.data, self.labels = self.generate_examples(num_observations, num_features, true_weights, repeated_features)
         return self.data, true_weights, self.labels
 
     def set_optimal_point(self, initial_weights):
         self.optimal_point = sc.minimize(self.compute_log_loss, initial_weights).x
 
-    def generate_examples(self, num_observations, num_features, true_weights):
-        X = self.rng.standard_normal(size=(num_observations, num_features), dtype='float64')
-        X = np.c_[X, np.ones((num_observations, 1))]
-        labels = np.sign(np.dot(X, true_weights))
-        return X, labels
+    def generate_examples(self, num_observations, num_features, true_weights, repeated_features):
+        if repeated_features is not True:
+            X = self.rng.standard_normal(size=(num_observations, num_features), dtype='float64')
+            X = np.c_[X, np.ones((num_observations, 1))]
+            labels = np.sign(np.dot(X, true_weights))
+            return X, labels
+        else:
+            X = self.rng.standard_normal(size=(num_observations, int(num_features / 2)), dtype='float64')
+            X = np.c_[X, X]
+            X = np.c_[X, np.ones((num_observations, 1))]
+            labels = np.sign(np.dot(X, true_weights))
+            return X, labels
 
     def generate_true_weights(self, num_features):
         return self.rng.standard_normal(num_features + 1)
@@ -59,8 +67,8 @@ class Dataset:
             -self.labels * self.sigmoid(-self.labels * np.dot(self.data, weights + alpha * direction)) * np.dot(
                 self.data, direction))
 
-    def step_log_loss(self,alpha,weights,direction):
-        return self.compute_log_loss(weights + alpha*direction)
+    def step_log_loss(self, alpha, weights, direction):
+        return self.compute_log_loss(weights + alpha * direction)
 
     def predict(self, weights, data):
         if self.sigmoid(np.dot(weights, data.T)) >= threshold:
@@ -78,29 +86,22 @@ class Dataset:
         return good / num_examples
 
     def test_solver(self, initial_weights, solver_to_call):
-        num_iter, solution,error_array = solver_to_call(self, initial_weights)
+        num_iter, solution, error_array = solver_to_call(self, initial_weights)
         solver_name = solver_to_call.__name__
         print("Solver:", solver_name)
         print("Number of iterations:", num_iter)
-        print("Solution:", solution)
-        print("Real optimal value", self.compute_log_loss(self.optimal_point))
-        print("Optimal value found:", self.compute_log_loss(solution))
         print("Absolute error between the optimal value and solution:",
               np.abs(self.compute_log_loss(self.optimal_point) - self.compute_log_loss(solution)))
-        print("True weights:", self.optimal_point)
-        print("Percentage of good classifications:", self.test_prediction(200, self.optimal_point, solution))
+        print("Error array:", error_array)
         print("\n")
-        #iter_array = np.array(range(len(error_array)))
-        #self.plot(solver_name, iter_array, error_array)
+        # iter_array = np.array(range(len(error_array)))
+        # self.plot(solver_name + str(len(initial_weights)), iter_array, error_array)
         return error_array
 
-
-    def plot(self, file_name,x,y):
+    def plot(self, file_name, x, y):
         fig, ax = plt.subplots()
         plt.title(file_name)
-        ax.plot(x,y)
+        ax.plot(x, y)
+        ax.set_yscale('log')
         plt.grid(True)
         plt.savefig("Plot/" + file_name)
-
-
-
