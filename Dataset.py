@@ -53,14 +53,14 @@ class Dataset:
         r = np.multiply(-self.labels, self.sigmoid(np.multiply(-self.labels, np.dot(self.data, weights))))
         return np.matmul(self.data.T, r) + 2 * lambda_reg * weights
 
-    def hessian(self, weights, hess_trick=0):
-        d = np.zeros(self.data.shape[0])
-        i = 0
-        for x_i, y_i in zip(self.data, self.labels):
-            d[i] = self.sigmoid(y_i * np.dot(weights, x_i.T)) * self.sigmoid(-y_i * np.dot(weights, x_i))
-        D = np.diag(d)
-        return np.dot(np.dot(self.data.T, D), self.data) + 2 * lambda_reg * np.identity(
-            weights.shape[0]) + hess_trick * 10 ** (-12) * np.identity(weights.shape[0])
+    # def hessian(self, weights, hess_trick=0):
+    #     d = np.zeros(self.data.shape[0])
+    #     i = 0
+    #     for x_i, y_i in zip(self.data, self.labels):
+    #         d[i] = self.sigmoid(y_i * np.dot(weights, x_i.T)) * self.sigmoid(-y_i * np.dot(weights, x_i))
+    #     D = np.diag(d)
+    #     return np.dot(np.dot(self.data.T, D), self.data) + 2 * lambda_reg * np.identity(
+    #         weights.shape[0]) + hess_trick * 10 ** (-12) * np.identity(weights.shape[0])
 
     def compute_loss_step_derivative(self, alpha, weights, direction):
         return np.sum(
@@ -105,3 +105,10 @@ class Dataset:
         ax.set_yscale('log')
         plt.grid(True)
         plt.savefig("Plot/" + file_name)
+
+
+    def hessian(self, w,hess_trick=0):
+        hess = 0
+        for x_i,y_i in zip(self.data, self.labels):
+            hess += np.exp(y_i * np.dot(w.T, x_i))/((1 + np.exp(y_i * np.dot(w.T,x_i)))**2) * np.outer(x_i,x_i.T)
+        return hess + lambda_reg * np.identity(w.shape[0]) + hess_trick * 10**(-12) * np.identity(w.shape[0])

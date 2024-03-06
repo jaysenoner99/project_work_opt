@@ -27,6 +27,8 @@ def test_all_and_plot(plot_name,num_observations=500, num_features=20, repeated_
     gradient_descent_exact = dataset.test_solver(initial_weights, solver.gradient_descent_exact)
     greedy_newton = dataset.test_solver(initial_weights, solver.greedy_newton)
     hybrid_newton = dataset.test_solver(initial_weights, solver.hybrid_newton)
+
+
     max_iter_reached = max([len(gradient_descent), len(newton_armijo),
                             len(standard_newton), len(gradient_descent_exact), len(greedy_newton)
                                , len(hybrid_newton)])
@@ -37,17 +39,21 @@ def test_all_and_plot(plot_name,num_observations=500, num_features=20, repeated_
     greedy_newton = adapt_array(greedy_newton, max_iter_reached)
     hybrid_newton = adapt_array(hybrid_newton, max_iter_reached)
 
-    print("difference between error vectors of egd and gn:",gradient_descent_exact-greedy_newton)
-    print("precisione",np.finfo(float).eps)
+
+    #print("difference between error vectors of egd and gn:",gradient_descent_exact-greedy_newton)
+    #print("precisione",np.finfo(float).eps)
     x = np.arange(max_iter_reached)
+
+
     # Plotting all values in the same figure
     fig, ax = plt.subplots()
-    plt.plot(x, gradient_descent[:len(x)], label='Gradient Descent')
-    plt.plot(x, gradient_descent_exact[:len(x)], label='Gradient Descent Exact')
+    #plt.plot(x, gradient_descent[:len(x)], label='Gradient Descent')
+    #plt.plot(x, gradient_descent_exact[:len(x)], label='Gradient Descent Exact')
     plt.plot(x, newton_armijo[:len(x)], label='Newton Armijo')
     plt.plot(x, standard_newton[:len(x)], label='Standard Newton')
-    plt.plot(x, greedy_newton[:len(x)], label='Greedy Newton')
-    plt.plot(x, hybrid_newton[:len(x)], label='Hybrid Newton')
+    #plt.plot(x, greedy_newton[:len(x)], label='Greedy Newton')
+    #plt.plot(x, hybrid_newton[:len(x)], label='Hybrid Newton')
+
 
     plt.xlabel('Iteration')
     plt.ylabel('f(xk) - f*')
@@ -59,6 +65,6 @@ def test_all_and_plot(plot_name,num_observations=500, num_features=20, repeated_
 
 if __name__ == '__main__':
     test_all_and_plot("p=20,regularized",500, 20)
-    test_all_and_plot("p=20,regularized,repeated_features",500,20,True)
-    test_all_and_plot("p=200,regularized",500,200)
-    test_all_and_plot("p=2000,regularized",500, 2000)
+    #test_all_and_plot("p=20,regularized,repeated_features",500,20,True)
+    #test_all_and_plot("p=200,regularized",500,200)
+    #test_all_and_plot("p=2000,regularized",500, 2000)

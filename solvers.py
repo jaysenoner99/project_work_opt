@@ -234,3 +234,28 @@ class Solver:
             error = np.append(error, dataset.compute_log_loss(weights) - optimal_loss)
         print("Hybrid Newton method exceeded max number of iterations")
         return i,weights, error
+
+    def newton_method(self,dataset, initial_weights):
+        # Initialize parameters
+        w = initial_weights
+        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True:
+            hess_trick = 1
+        else:
+            hess_trick = 0
+        error = np.array([], dtype='float64')
+        optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
+        error = np.append(error, dataset.compute_log_loss(initial_weights) - optimal_loss)
+
+        for i in range(max_iter):
+            # Compute gradient and Hessian
+            grad = dataset.gradient(w)
+            hessian = dataset.hessian(w,hess_trick)
+            inv = np.linalg.inv(hessian)
+            # Update parameters using Newton's method
+            w = w - np.dot(inv,grad)
+            error = np.append(error, dataset.compute_log_loss(w) - optimal_loss)
+            # Check for convergence
+            if np.linalg.norm(grad) < tol:
+                return i,w,error
+
+        return i,w,error
