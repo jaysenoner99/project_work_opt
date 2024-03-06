@@ -86,7 +86,7 @@ class Dataset:
         return good / num_examples
 
     def test_solver(self, initial_weights, solver_to_call):
-        num_iter, solution, error_array = solver_to_call(self, initial_weights)
+        num_iter, solution, error_array,time_array = solver_to_call(self, initial_weights)
         solver_name = solver_to_call.__name__
         print("Solver:", solver_name)
         print("Number of iterations:", num_iter)
@@ -96,7 +96,7 @@ class Dataset:
         print("\n")
         # iter_array = np.array(range(len(error_array)))
         # self.plot(solver_name + str(len(initial_weights)), iter_array, error_array)
-        return error_array
+        return error_array,time_array
 
     def plot(self, file_name, x, y):
         fig, ax = plt.subplots()
@@ -107,7 +107,7 @@ class Dataset:
         plt.savefig("Plot/" + file_name)
 
 
-    def hessian(self, w,hess_trick=0):
+    def hessian(self,w,hess_trick=0):
         hess = 0
         for x_i,y_i in zip(self.data, self.labels):
             hess += np.exp(y_i * np.dot(w.T, x_i))/((1 + np.exp(y_i * np.dot(w.T,x_i)))**2) * np.outer(x_i,x_i.T)

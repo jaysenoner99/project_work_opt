@@ -1,12 +1,13 @@
 import numpy as np
 from numpy import linalg as la
 from scipy import optimize as opt
+from timeit import default_timer as timer
 
 # Parameters for Armijo line_search
 gamma = 0.3
 delta = 0.25
 max_iter_armijo = 1000
-initial_stepsize = 1
+initial_stepsize = 3.5
 
 # Parameters for Bisection
 max_iter_bisection = 1000
@@ -36,9 +37,6 @@ class Solver:
                 alpha *= delta
         print("Armijo: number of iterations > max_iter_armijo")
         return alpha
-
-    def secant(self, dataset, weights, direction):
-        pass
 
     # Standard Newton method (alpha = 1)
     def standard_newton_cholesky(self, dataset, initial_weights):
@@ -79,13 +77,16 @@ class Solver:
         weights = initial_weights
         count_armijo = 0
         error = np.array([],dtype = 'float64')
+        time_array = [0]
+        time_index = 1
         optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
         error = np.append(error, dataset.compute_log_loss(initial_weights) - optimal_loss)
         for i in range(max_iter):
+            start = timer()
             grad = dataset.gradient(weights)
             if la.norm(grad) < eps:
                 print("iter e armijo steps:", i, count_armijo)
-                return i,weights,error
+                return i,weights,error, time_array
             hess = dataset.hessian(weights, hess_trick)
             direction = la.solve(hess, -grad)
             new_weights = weights + direction
@@ -101,10 +102,13 @@ class Solver:
                 new_weights = weights + step_size * direction
 
             weights = new_weights
+            end = timer()
+            time_array.append(end-start + time_array[time_index-1])
+            time_index += 1
             error = np.append(error, dataset.compute_log_loss(weights) - optimal_loss)
         print("Standard newton method exceeded max iter")
         print("iter e armijo steps:" ,i, count_armijo)
-        return i, weights, error
+        return i, weights, error, time_array
 
     # Gradient Descent algorithm
     def gradient_descent(self, dataset, initial_weights):
@@ -112,32 +116,43 @@ class Solver:
         error = np.array([],dtype = 'float64')
         optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
         error = np.append(error, dataset.compute_log_loss(initial_weights) - optimal_loss)
+        time_array = [0]
+        time_index = 1
         for i in range(max_iter):
+            start = timer()
             direction = -dataset.gradient(weights)
             if la.norm(direction) < eps:
-                return i, weights, error
+                return i, weights, error, time_array
             step_size = self.armijo_line_search(dataset, weights, direction)
             weights = weights + step_size * direction
+            end = timer()
+            time_array.append(end - start + time_array[time_index - 1])
+            time_index += 1
             error = np.append(error,dataset.compute_log_loss(weights) - optimal_loss)
         print("Gradient Descent: number of iterations > max_iter")
-        return i, weights, error
+        return i, weights, error, time_array
 
     #Gradient descent with exact line search
-    # TODO: make it not use scipy D:
     def gradient_descent_exact(self, dataset, initial_weights):
         weights = initial_weights
         error = np.array([], dtype='float64')
         optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
         error = np.append(error, dataset.compute_log_loss(initial_weights) - optimal_loss)
+        time_array = [0]
+        time_index = 1
         for i in range(max_iter):
+            start = timer()
             direction = -dataset.gradient(weights)
             if la.norm(direction) < eps:
-                return i,weights, error
+                return i,weights, error, time_array
             step_size = opt.minimize_scalar(dataset.step_log_loss, args=(weights,direction)).x
             weights = weights + step_size * direction
+            end = timer()
+            time_array.append(end - start + time_array[time_index - 1])
+            time_index += 1
             error = np.append(error,dataset.compute_log_loss(weights) - optimal_loss)
         print("Gradient Descent with exact line search exceeded max number of iterations")
-        return i,weights, error
+        return i,weights, error, time_array
 
     # Newton method with armijo line search and cholesky decomposition
     def newton_armijo_cholesky(self, dataset, initial_weights):
@@ -173,17 +188,23 @@ class Solver:
         error = np.array([], dtype='float64')
         optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
         error = np.append(error, dataset.compute_log_loss(initial_weights) - optimal_loss)
+        time_array = [0]
+        time_index = 1
         for i in range(max_iter):
+            start = timer()
             grad = dataset.gradient(weights)
             if la.norm(grad) < eps:
-                return i,weights, error
+                return i,weights, error, time_array
             hess = dataset.hessian(weights, hess_trick)
             direction = la.solve(hess, -grad)
             step_size = self.armijo_line_search(dataset, weights, direction)
             weights = weights + step_size * direction
+            end = timer()
+            time_array.append(end - start + time_array[time_index - 1])
+            time_index += 1
             error = np.append(error, dataset.compute_log_loss(weights) - optimal_loss)
         print("Standard newton with armijo line search exceeded max number of iterations")
-        return i, weights, error
+        return i, weights, error, time_array
 
     #Greedy Newton method(Newton method with exact line search)
     def greedy_newton(self, dataset, initial_weights):
@@ -195,17 +216,23 @@ class Solver:
         error = np.array([], dtype='float64')
         optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
         error = np.append(error, dataset.compute_log_loss(initial_weights) - optimal_loss)
+        time_array = [0]
+        time_index = 1
         for i in range(max_iter):
+            start = timer()
             grad = dataset.gradient(weights)
             if la.norm(grad) < eps:
-                return i,weights, error
+                return i,weights, error, time_array
             hess = dataset.hessian(weights, hess_trick)
             direction = la.solve(hess, -grad)
             step_size = opt.minimize_scalar(dataset.step_log_loss,args=(weights,direction)).x
             weights = weights + step_size * direction
+            end = timer()
+            time_array.append(end - start + time_array[time_index - 1])
+            time_index += 1
             error = np.append(error, dataset.compute_log_loss(weights)- optimal_loss)
         print("Newton with exact line search exceeded max number of iterations")
-        return i,weights, error
+        return i,weights, error, time_array
 
     def hybrid_newton(self,dataset, initial_weights):
         if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True:
@@ -216,10 +243,13 @@ class Solver:
         error = np.array([], dtype='float64')
         optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
         error = np.append(error, dataset.compute_log_loss(initial_weights) - optimal_loss)
+        time_array = [0]
+        time_index = 1
         for i in range(max_iter):
+            start = timer()
             grad = dataset.gradient(weights)
             if la.norm(grad) < eps:
-                return i,weights, error
+                return i,weights, error, time_array
             hess = dataset.hessian(weights, hess_trick)
             newton_direction = la.solve(hess,-grad)
 
@@ -230,32 +260,10 @@ class Solver:
                 weights = exact_gradient_step
             else:
                 weights = newton_pure_step
-
+            end = timer()
+            time_array.append(end - start + time_array[time_index - 1])
+            time_index += 1
             error = np.append(error, dataset.compute_log_loss(weights) - optimal_loss)
         print("Hybrid Newton method exceeded max number of iterations")
-        return i,weights, error
+        return i, weights, error, time_array
 
-    def newton_method(self,dataset, initial_weights):
-        # Initialize parameters
-        w = initial_weights
-        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True:
-            hess_trick = 1
-        else:
-            hess_trick = 0
-        error = np.array([], dtype='float64')
-        optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
-        error = np.append(error, dataset.compute_log_loss(initial_weights) - optimal_loss)
-
-        for i in range(max_iter):
-            # Compute gradient and Hessian
-            grad = dataset.gradient(w)
-            hessian = dataset.hessian(w,hess_trick)
-            inv = np.linalg.inv(hessian)
-            # Update parameters using Newton's method
-            w = w - np.dot(inv,grad)
-            error = np.append(error, dataset.compute_log_loss(w) - optimal_loss)
-            # Check for convergence
-            if np.linalg.norm(grad) < tol:
-                return i,w,error
-
-        return i,w,error
