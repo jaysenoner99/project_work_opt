@@ -23,29 +23,29 @@ def test_all_and_plot(plot_name,num_observations=500, num_features=20, repeated_
 
     gradient_descent,time_gd = dataset.test_solver(initial_weights, solver.gradient_descent)
     gradient_descent_exact, time_gde = dataset.test_solver(initial_weights, solver.gradient_descent_exact)
-    # newton_armijo,time_na = dataset.test_solver(initial_weights, solver.newton_armijo)
-    # standard_newton,time_sn = dataset.test_solver(initial_weights, solver.standard_newton)
-    #
-    # greedy_newton,time_gn = dataset.test_solver(initial_weights, solver.greedy_newton)
-    # hybrid_newton,time_hn = dataset.test_solver(initial_weights, solver.hybrid_newton)
+    newton_armijo,time_na = dataset.test_solver(initial_weights, solver.newton_armijo)
+    standard_newton,time_sn = dataset.test_solver(initial_weights, solver.standard_newton)
+
+    greedy_newton,time_gn = dataset.test_solver(initial_weights, solver.greedy_newton)
+    hybrid_newton,time_hn = dataset.test_solver(initial_weights, solver.hybrid_newton)
 
 
     #Rescale time measure from seconds to milliseconds
     time_gd = np.multiply(time_gd,1000)
     time_gde = np.multiply(time_gde, 1000)
-    # time_na = np.multiply(time_na,1000)
-    # time_sn = np.multiply(time_sn,1000)
-    #
-    # time_gn = np.multiply(time_gn,1000)
-    # time_hn = np.multiply(time_hn,1000)
+    time_na = np.multiply(time_na,1000)
+    time_sn = np.multiply(time_sn,1000)
+
+    time_gn = np.multiply(time_gn,1000)
+    time_hn = np.multiply(time_hn,1000)
     max_iter_reached = max([len(gradient_descent),len(gradient_descent_exact)])
     gradient_descent = adapt_array(gradient_descent, max_iter_reached)
 
     gradient_descent_exact = adapt_array(gradient_descent_exact, max_iter_reached)
-    # newton_armijo = adapt_array(newton_armijo, max_iter_reached)
-    # standard_newton = adapt_array(standard_newton, max_iter_reached)
-    # greedy_newton = adapt_array(greedy_newton, max_iter_reached)
-    # hybrid_newton = adapt_array(hybrid_newton, max_iter_reached)
+    newton_armijo = adapt_array(newton_armijo, max_iter_reached)
+    standard_newton = adapt_array(standard_newton, max_iter_reached)
+    greedy_newton = adapt_array(greedy_newton, max_iter_reached)
+    hybrid_newton = adapt_array(hybrid_newton, max_iter_reached)
 
 
     #print("difference between error vectors of egd and gn:",gradient_descent_exact-greedy_newton)
@@ -57,10 +57,10 @@ def test_all_and_plot(plot_name,num_observations=500, num_features=20, repeated_
     fig, ax = plt.subplots()
     plt.plot(x, gradient_descent[:len(x)], label='Gradient Descent')
     plt.plot(x, gradient_descent_exact[:len(x)], label='Gradient Descent Exact')
-    # plt.plot(x, newton_armijo[:len(x)], label='Newton Armijo')
-    # plt.plot(x, standard_newton[:len(x)], label='Standard Newton')
-    # plt.plot(x, greedy_newton[:len(x)], label='Greedy Newton')
-    # plt.plot(x, hybrid_newton[:len(x)], label='Hybrid Newton')
+    plt.plot(x, newton_armijo[:len(x)], label='Newton Armijo')
+    plt.plot(x, standard_newton[:len(x)], label='Standard Newton')
+    plt.plot(x, greedy_newton[:len(x)], label='Greedy Newton')
+    plt.plot(x, hybrid_newton[:len(x)], label='Hybrid Newton')
 
 
     plt.xlabel('Iteration')
