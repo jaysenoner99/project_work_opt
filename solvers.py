@@ -9,10 +9,10 @@ delta = 0.25
 max_iter_armijo = 1000
 initial_stepsize = 3.5
 
-# Parameters for Bisection
-max_iter_bisection = 1000
-tol_bis = 0.001
-
+# Parameters for Approx. exact line search
+beta = 2/(1 + np.sqrt(5))
+max_iter_AELS = 1000
+initial_stepsizeAELS = 1
 # Solver parameters
 max_iter = 1000
 tol = 0.000001  # For the stopping criterion norm(new_weights - weights) < tol
@@ -140,12 +140,14 @@ class Solver:
         error = np.append(error, dataset.compute_log_loss(initial_weights) - optimal_loss)
         time_array = [0]
         time_index = 1
+        step_size = initial_stepsizeAELS
         for i in range(max_iter):
             start = timer()
             direction = -dataset.gradient(weights)
             if la.norm(direction) < eps:
                 return i,weights, error, time_array
-            step_size = opt.minimize_scalar(dataset.step_log_loss, args=(weights,direction)).x
+            #step_size = opt.minimize_scalar(dataset.step_log_loss, args=(weights,direction)).x
+            step_size = self.AELS(dataset,weights,step_size,direction)
             weights = weights + step_size * direction
             end = timer()
             time_array.append(end - start + time_array[time_index - 1])
@@ -218,6 +220,7 @@ class Solver:
         error = np.append(error, dataset.compute_log_loss(initial_weights) - optimal_loss)
         time_array = [0]
         time_index = 1
+        step_size = initial_stepsizeAELS
         for i in range(max_iter):
             start = timer()
             grad = dataset.gradient(weights)
@@ -225,7 +228,8 @@ class Solver:
                 return i,weights, error, time_array
             hess = dataset.hessian(weights, hess_trick)
             direction = la.solve(hess, -grad)
-            step_size = opt.minimize_scalar(dataset.step_log_loss,args=(weights,direction)).x
+            #step_size = opt.minimize_scalar(dataset.step_log_loss,args=(weights,direction)).x
+            step_size = self.AELS(dataset, weights, step_size, direction)
             weights = weights + step_size * direction
             end = timer()
             time_array.append(end - start + time_array[time_index - 1])
@@ -245,6 +249,7 @@ class Solver:
         error = np.append(error, dataset.compute_log_loss(initial_weights) - optimal_loss)
         time_array = [0]
         time_index = 1
+        exact_stepsize = initial_stepsizeAELS
         for i in range(max_iter):
             start = timer()
             grad = dataset.gradient(weights)
@@ -254,7 +259,8 @@ class Solver:
             newton_direction = la.solve(hess,-grad)
 
             newton_pure_step = weights + newton_direction
-            exact_stepsize = opt.minimize_scalar(dataset.step_log_loss,args=(weights,-grad)).x
+            #exact_stepsize = opt.minimize_scalar(dataset.step_log_loss,args=(weights,-grad)).x
+            exact_stepsize = self.AELS(dataset,weights,exact_stepsize,-grad)
             exact_gradient_step = weights - exact_stepsize * grad
             if dataset.compute_log_loss(exact_gradient_step) < dataset.compute_log_loss(newton_pure_step):
                 weights = exact_gradient_step
@@ -267,3 +273,29 @@ class Solver:
         print("Hybrid Newton method exceeded max number of iterations")
         return i, weights, error, time_array
 
+    def AELS(self, dataset, weights, last_stepsize, search_direction):
+        step_size = last_stepsize
+        old_loss = dataset.compute_log_loss(weights)
+        new_temp_loss = dataset.step_log_loss(step_size,weights,search_direction)
+        alpha = beta
+        if new_temp_loss < old_loss:
+            alpha = 1 / beta
+        for _ in range(max_iter_AELS):
+            step_size = alpha * step_size
+            old_loss = new_temp_loss
+            new_temp_loss = dataset.step_log_loss(step_size,weights,search_direction)
+            if new_temp_loss >= old_loss:
+                break
+        if step_size == last_stepsize / beta:
+            step_size = last_stepsize
+            alpha = beta
+            new_temp_loss,old_loss = old_loss,new_temp_loss
+            for _ in range(max_iter_AELS):
+                step_size = alpha * step_size
+                old_loss = new_temp_loss
+                new_temp_loss = dataset.step_log_loss(step_size, weights, search_direction)
+                if new_temp_loss > old_loss:
+                    break
+        if alpha < 1:
+            return step_size
+        return (beta ** 2) * step_size
