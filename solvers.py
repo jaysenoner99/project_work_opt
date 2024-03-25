@@ -3,7 +3,7 @@ from numpy import linalg as la
 from scipy import optimize as opt
 from timeit import default_timer as timer
 
-# Parameters for Armijo line_search
+# Parameters for Armor line_search
 gamma = 0.3
 delta = 0.25
 max_iter_armijo = 1000
@@ -12,7 +12,7 @@ initial_stepsize = 3.5
 # Parameters for Approx. exact line search(AELS)
 beta = 2 / (1 + np.sqrt(5))
 max_iter_AELS = 1000
-initial_stepsizeAELS = 1.5
+initial_stepsizeAELS = 1.7
 # Solver parameters
 max_iter = 1000
 tol = 0.000001  # For the stopping criterion norm(new_weights - weights) < tol
@@ -38,76 +38,8 @@ class Solver:
         print("Armijo: number of iterations > max_iter_armijo")
         return alpha
 
-    # Standard Newton method (alpha = 1)
-    # def standard_newton_cholesky(self, dataset, initial_weights):
-    #     if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True:
-    #         hess_trick = 1
-    #     else:
-    #         hess_trick = 0
-    #     weights = initial_weights
-    #     error = np.array([], dtype='float64')
-    #     optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
-    #     error = np.append(error, dataset.compute_log_loss(initial_weights) - optimal_loss)
-    #     for i in range(max_iter):
-    #         grad = dataset.gradient(weights)
-    #         if la.norm(grad) < eps:
-    #             return i, weights, error
-    #         hess = dataset.hessian(weights, hess_trick)
-    #         L = la.cholesky(hess)
-    #         w = la.solve(L, -grad)
-    #         direction = la.solve(L.T, w)
-    #
-    #         new_weights = weights + direction
-    #         new_loss = dataset.compute_log_loss(new_weights)
-    #         old_loss = dataset.compute_log_loss(weights)
-    #         error = np.append(error, new_loss - optimal_loss)
-    #         if new_loss >= old_loss:
-    #             step_size = self.armijo_line_search(dataset, weights, direction)
-    #             new_weights = weights + step_size * direction
-    #
-    #         weights = new_weights
-    #     print("Standard newton method with cholesky factorization exceeded max number of iterations")
-    #     return i, weights, error
 
-    def standard_newton(self, dataset, initial_weights):
-        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True:
-            hess_trick = 1
-        else:
-            hess_trick = 0
-        weights = initial_weights
-        count_armijo = 0
-        error = np.array([], dtype='float64')
-        time_array = [0]
-        time_index = 1
-        optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
-        error = np.append(error, dataset.compute_log_loss(initial_weights) - optimal_loss)
-        for i in range(max_iter):
-            start = timer()
-            grad = dataset.gradient(weights)
-            if la.norm(grad) < eps:
-                print("iter e armijo steps:", i, count_armijo)
-                return i, weights, error, time_array
-            hess = dataset.hessian(weights, hess_trick)
-            direction = la.solve(hess, -grad)
 
-            new_weights = weights + direction
-            new_loss = dataset.compute_log_loss(new_weights)
-            old_loss = dataset.compute_log_loss(weights)
-
-            # If the objective function has increased, compute armijo step.
-            if new_loss >= old_loss:
-                count_armijo += 1
-                step_size = self.armijo_line_search(dataset, weights, direction)
-                new_weights = weights + step_size * direction
-
-            weights = new_weights
-            end = timer()
-            time_array.append(end - start + time_array[time_index - 1])
-            time_index += 1
-            error = np.append(error, dataset.compute_log_loss(weights) - optimal_loss)
-        print("Standard newton method exceeded max iter")
-        print("iter e armijo steps:", i, count_armijo)
-        return i, weights, error, time_array
 
     # Gradient Descent algorithm
     def gradient_descent(self, dataset, initial_weights):
@@ -304,3 +236,44 @@ class Solver:
         if alpha < 1:
             return step_size
         return (beta ** 2) * step_size
+
+
+    def standard_newton(self, dataset, initial_weights):
+        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True:
+            hess_trick = 1
+        else:
+            hess_trick = 0
+        weights = initial_weights
+        count_armijo = 0
+        error = np.array([], dtype='float64')
+        time_array = [0]
+        time_index = 1
+        optimal_loss = dataset.compute_log_loss(dataset.optimal_point)
+        error = np.append(error, dataset.compute_log_loss(initial_weights) - optimal_loss)
+        for i in range(max_iter):
+            start = timer()
+            grad = dataset.gradient(weights)
+            if la.norm(grad) < eps:
+                print("iter e armijo steps:", i, count_armijo)
+                return i, weights, error, time_array
+            hess = dataset.hessian(weights, hess_trick)
+            direction = la.solve(hess, -grad)
+
+            new_weights = weights + direction
+            new_loss = dataset.compute_log_loss(new_weights)
+            old_loss = dataset.compute_log_loss(weights)
+
+            # If the objective function has increased, compute armijo step.
+            if new_loss >= old_loss:
+                count_armijo += 1
+                step_size = self.armijo_line_search(dataset, weights, direction)
+                new_weights = weights + step_size * direction
+
+            weights = new_weights
+            end = timer()
+            time_array.append(end - start + time_array[time_index - 1])
+            time_index += 1
+            error = np.append(error, dataset.compute_log_loss(weights) - optimal_loss)
+        print("Standard newton method exceeded max iter")
+        print("iter e armijo steps:", i, count_armijo)
+        return i, weights, error, time_array

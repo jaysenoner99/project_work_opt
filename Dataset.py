@@ -6,14 +6,14 @@ import matplotlib.pyplot as plt
 # Prediciton threshold
 threshold = 0.5
 # Regularization strength
-lambda_reg = 1
+lambda_reg = 0
 
 
 class Dataset:
 
-    def __init__(self):
-        self.data = None
-        self.labels = None
+    def __init__(self,data=None,labels=None):
+        self.data = data
+        self.labels = labels
         self.rng = np.random.default_rng(111)
         self.optimal_point = None
         self.repeated_features = False
@@ -32,6 +32,9 @@ class Dataset:
 
     def set_optimal_point(self, initial_weights):
         self.optimal_point = sc.minimize(self.compute_log_loss, initial_weights).x
+        print("Optimal point for this problem",self.optimal_point)
+        print("Loss on the optimal point",self.compute_log_loss(self.optimal_point))
+
 
     def generate_examples(self, num_observations, num_features, true_weights, repeated_features):
         if repeated_features is not True:
@@ -92,6 +95,7 @@ class Dataset:
         print("Number of iterations:", num_iter)
         print("Absolute error between the optimal value and solution:",
               np.abs(self.compute_log_loss(self.optimal_point) - self.compute_log_loss(solution)))
+        print("Loss value at solution point:",self.compute_log_loss(solution))
         print("Error array:", error_array)
         print("\n")
         # iter_array = np.array(range(len(error_array)))
@@ -107,9 +111,15 @@ class Dataset:
         plt.savefig("Plot/" + file_name)
 
 
-    def hessian(self,w,hess_trick=0):
-        hess = 0
-        for x_i,y_i in zip(self.data, self.labels):
-            hess += np.exp(y_i * np.dot(w.T, x_i))/((1 + np.exp(y_i * np.dot(w.T,x_i)))**2) * np.outer(x_i,x_i.T)
-        return hess + lambda_reg * np.identity(w.shape[0]) + hess_trick * 10**(-12) * np.identity(w.shape[0])
+    # def hessian(self,w,hess_trick=0):
+    #     hess = 0
+    #     for x_i,y_i in zip(self.data, self.labels):
+    #         hess += np.exp(y_i * np.dot(w.T, x_i))/((1 + np.exp(y_i * np.dot(w.T,x_i)))**2) * np.outer(x_i,x_i.T)
+    #     return hess + lambda_reg * np.identity(w.shape[0]) + hess_trick * 10**(-12) * np.identity(w.shape[0])
 
+
+
+
+    def hessian(self, w, hess_trick=1):
+        a = np.exp(self.labels *(self.data @ w))
+        return self.data.T @ np.diag(a/(1 + a)**2) @ self.data + lambda_reg * np.identity(w.shape[0]) + hess_trick * 1e-12 * np.identity(w.shape[0])
