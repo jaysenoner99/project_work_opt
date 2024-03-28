@@ -21,10 +21,17 @@ class Dataset:
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
 
-    def compute_log_loss(self, weights):
-        return np.sum(np.log(1 + np.exp(-self.labels * np.dot(self.data, weights)))) + lambda_reg * la.norm(
-            weights) ** 2
+    # def compute_log_loss(self, weights):
+    #     return np.sum(np.log(1 + np.exp(-self.labels * np.dot(self.data, weights)))) + lambda_reg * la.norm(
+    #         weights) ** 2
 
+    def compute_log_loss(self, weights):
+        z = self.labels * np.dot(self.data, weights)
+        max_z = np.maximum(0, z)  # Compute max(0, z) element-wise
+        loss = np.log(1 + np.exp(-np.abs(z))) + max_z - z
+        return np.sum(loss) + lambda_reg * la.norm(weights) ** 2
+    def compute_log_loss_new(self,weights):
+        return np.sum(np.log(1 + np.exp(-self.labels * (self.data @ weights)))) + lambda_reg * la.norm(weights)**2
     def generate_dataset(self, num_observations, num_features, repeated_features):
         true_weights = self.generate_true_weights(num_features)
         self.data, self.labels = self.generate_examples(num_observations, num_features, true_weights, repeated_features)

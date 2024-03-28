@@ -13,6 +13,7 @@ initial_stepsize = 3.5
 beta = 2 / (1 + np.sqrt(5))
 max_iter_AELS = 1000
 initial_stepsizeAELS = 1.7
+
 # Solver parameters
 max_iter = 1000
 tol = 0.000001  # For the stopping criterion norm(new_weights - weights) < tol

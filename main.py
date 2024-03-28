@@ -284,25 +284,26 @@ if __name__ == '__main__':
     # print("time sn",time_sn)
     # print("time_sn_new_hess",time_sn_new_hess)
 
-    # features = 2000
+    # features = 20000
     # data = np.random.rand(500, features)
     # labels = np.random.choice([-1, 1], 500)
     #
     # dataset = Dataset(data, labels)
-    # for i in range(100):
+    # for i in range(10000):
     #     w = np.random.rand(features)
     #     start = timer()
-    #     h1 = dataset.hessian(w,1)
+    #     l1 = dataset.compute_log_loss(w)
     #     end = timer()
-    #     print("original hessian time:", end - start)
+    #     print("Time loss 1:",end-start)
     #     start = timer()
-    #     h2 = dataset.new_hessian(w,1)
+    #     l2 = dataset.compute_log_loss_new(w)
     #     end = timer()
-    #     print("new hessian time:", end - start)
-    #     print("norm h1", la.norm(h1))
-    #     print("norm h2", la.norm(h2))
-    #     print("Equal Hessian:", check_equal_hessian(h1, h2))
-    #     print("hessian norm difference", abs(la.norm(h1) - la.norm(h2)))
+    #     print("Time loss 2",end-start)
+    #     if l1 == l2:
+    #         print("equal loss")
+    #     else:
+    #         print("not equal loss")
+    #         break
 
 
 
