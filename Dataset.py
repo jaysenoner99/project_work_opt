@@ -2,11 +2,13 @@ import numpy as np
 from numpy import linalg as la
 import scipy.optimize as sc
 import matplotlib.pyplot as plt
+from scipy.special import expit
 
 # Prediciton threshold
 threshold = 0.5
+
 # Regularization strength
-lambda_reg = 0
+lambda_reg = 1
 
 
 class Dataset:
@@ -18,20 +20,23 @@ class Dataset:
         self.optimal_point = None
         self.repeated_features = False
 
-    def sigmoid(self, x):
-        return 1 / (1 + np.exp(-x))
+    # def sigmoid(self, x):
+    #     return 1 / (1 + np.exp(-x))
 
-    # def compute_log_loss(self, weights):
-    #     return np.sum(np.log(1 + np.exp(-self.labels * np.dot(self.data, weights)))) + lambda_reg * la.norm(
-    #         weights) ** 2
+    def sigmoid(self, x):
+        # Use the more numerically stable version of the sigmoid function
+        return np.where(x >= 0, 1 / (1 + np.exp(-x)), np.exp(x) / (1 + np.exp(x)))
+
+
 
     def compute_log_loss(self, weights):
         z = self.labels * np.dot(self.data, weights)
         max_z = np.maximum(0, z)  # Compute max(0, z) element-wise
         loss = np.log(1 + np.exp(-np.abs(z))) + max_z - z
         return np.sum(loss) + lambda_reg * la.norm(weights) ** 2
-    def compute_log_loss_new(self,weights):
-        return np.sum(np.log(1 + np.exp(-self.labels * (self.data @ weights)))) + lambda_reg * la.norm(weights)**2
+
+    # def compute_log_loss_new(self,weights):
+    #     return np.sum(np.log(1 + np.exp(-self.labels * (self.data @ weights)))) + lambda_reg * la.norm(weights)**2
     def generate_dataset(self, num_observations, num_features, repeated_features):
         true_weights = self.generate_true_weights(num_features)
         self.data, self.labels = self.generate_examples(num_observations, num_features, true_weights, repeated_features)
@@ -63,14 +68,7 @@ class Dataset:
         r = np.multiply(-self.labels, self.sigmoid(np.multiply(-self.labels, np.dot(self.data, weights))))
         return np.matmul(self.data.T, r) + 2 * lambda_reg * weights
 
-    # def hessian(self, weights, hess_trick=0):
-    #     d = np.zeros(self.data.shape[0])
-    #     i = 0
-    #     for x_i, y_i in zip(self.data, self.labels):
-    #         d[i] = self.sigmoid(y_i * np.dot(weights, x_i.T)) * self.sigmoid(-y_i * np.dot(weights, x_i))
-    #     D = np.diag(d)
-    #     return np.dot(np.dot(self.data.T, D), self.data) + 2 * lambda_reg * np.identity(
-    #         weights.shape[0]) + hess_trick * 10 ** (-12) * np.identity(weights.shape[0])
+
 
     def compute_loss_step_derivative(self, alpha, weights, direction):
         return np.sum(
@@ -118,15 +116,33 @@ class Dataset:
         plt.savefig("Plot/" + file_name)
 
 
+    # Different implementations tested
+    # def hessian(self, weights, hess_trick=0):
+    #     d = np.zeros(self.data.shape[0])
+    #     i = 0
+    #     for x_i, y_i in zip(self.data, self.labels):
+    #         d[i] = self.sigmoid(y_i * np.dot(weights, x_i.T)) * self.sigmoid(-y_i * np.dot(weights, x_i))
+    #     D = np.diag(d)
+    #     return np.dot(np.dot(self.data.T, D), self.data) + 2 * lambda_reg * np.identity(
+    #         weights.shape[0]) + hess_trick * 10 ** (-12) * np.identity(weights.shape[0])
+
     # def hessian(self,w,hess_trick=0):
     #     hess = 0
     #     for x_i,y_i in zip(self.data, self.labels):
     #         hess += np.exp(y_i * np.dot(w.T, x_i))/((1 + np.exp(y_i * np.dot(w.T,x_i)))**2) * np.outer(x_i,x_i.T)
     #     return hess + lambda_reg * np.identity(w.shape[0]) + hess_trick * 10**(-12) * np.identity(w.shape[0])
 
-
-
-
-    def hessian(self, w, hess_trick=1):
-        a = np.exp(self.labels *(self.data @ w))
+    def hessian(self, w, hess_trick=0):
+        a = np.exp(-self.labels *(self.data @ w))
         return self.data.T @ np.diag(a/(1 + a)**2) @ self.data + lambda_reg * np.identity(w.shape[0]) + hess_trick * 1e-12 * np.identity(w.shape[0])
+
+    # def hessian(self, w, hess_trick=1):
+    #     z = self.labels * (self.data @ w)
+    #     exp_z = np.exp(z)
+    #     a = exp_z / ((exp_z + 1) ** 2)
+    #     diag_a = np.diag(a)
+    #     return self.data.T @ diag_a @ self.data + lambda_reg * np.identity(
+    #         w.shape[0]) + hess_trick * 1e-12 * np.identity(w.shape[0])
+
+
+

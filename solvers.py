@@ -2,12 +2,20 @@ import numpy as np
 from numpy import linalg as la
 from scipy import optimize as opt
 from timeit import default_timer as timer
+import Dataset
 
-# Parameters for Armor line_search
+# Parameters for armijo line search
 gamma = 0.3
 delta = 0.25
 max_iter_armijo = 1000
-initial_stepsize = 3.5
+initial_stepsize = 3
+
+
+
+# gamma = 0.3
+# delta = 0.25
+# max_iter_armijo = 1000
+# initial_stepsize = 3.5
 
 # Parameters for Approx. exact line search(AELS)
 beta = 2 / (1 + np.sqrt(5))
@@ -116,7 +124,7 @@ class Solver:
 
     # Newton method with armijo line search
     def newton_armijo(self, dataset, initial_weights):
-        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True:
+        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True or Dataset.lambda_reg == 0:
             hess_trick = 1
         else:
             hess_trick = 0
@@ -144,7 +152,7 @@ class Solver:
 
     # Greedy Newton method(Newton method with exact line search)
     def greedy_newton(self, dataset, initial_weights, aels=True):
-        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True:
+        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True or Dataset.lambda_reg == 0:
             hess_trick = 1
         else:
             hess_trick = 0
@@ -175,7 +183,7 @@ class Solver:
         return i, weights, error, time_array
 
     def hybrid_newton(self, dataset, initial_weights, aels=True):
-        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True:
+        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True or Dataset.lambda_reg == 0:
             hess_trick = 1
         else:
             hess_trick = 0
@@ -211,6 +219,7 @@ class Solver:
         print("Hybrid Newton method exceeded max number of iterations")
         return i, weights, error, time_array
 
+    #Approx. exact line search routine.
     def AELS(self, dataset, weights, last_stepsize, search_direction):
         step_size = last_stepsize
         old_loss = dataset.compute_log_loss(weights)
@@ -240,7 +249,7 @@ class Solver:
 
 
     def standard_newton(self, dataset, initial_weights):
-        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True:
+        if len(initial_weights) - 1 == 2000 or dataset.repeated_features is True or Dataset.lambda_reg == 0:
             hess_trick = 1
         else:
             hess_trick = 0

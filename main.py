@@ -6,6 +6,7 @@ from numpy import linalg as la
 from timeit import default_timer as timer
 
 
+
 def adapt_array(error_array, max_iter_reached):
     for i in range(max_iter_reached - len(error_array)):
         error_array = np.append(error_array, error_array[-1])
@@ -27,6 +28,7 @@ def test_all_and_plot(plot_name, num_observations=500, num_features=20, repeated
     dataset, solver = init(num_observations, num_features, initial_weights, repeated_features)
 
     # Tests
+
     gradient_descent, time_gd = dataset.test_solver(initial_weights, solver.gradient_descent)
     gradient_descent_exact, time_gde = dataset.test_solver(initial_weights, solver.gradient_descent_exact)
     newton_armijo, time_na = dataset.test_solver(initial_weights, solver.newton_armijo)
@@ -49,6 +51,7 @@ def test_all_and_plot(plot_name, num_observations=500, num_features=20, repeated
                             len(standard_newton), len(greedy_newton), len(hybrid_newton)])
 
     # Adapt arrays to fit the plot
+
     gradient_descent = adapt_array(gradient_descent, max_iter_reached)
     gradient_descent_exact = adapt_array(gradient_descent_exact, max_iter_reached)
     newton_armijo = adapt_array(newton_armijo, max_iter_reached)
@@ -73,7 +76,8 @@ def test_all_and_plot(plot_name, num_observations=500, num_features=20, repeated
     plt.ylabel('f(xk) - f*')
     plt.legend()
     plt.grid(True)
-    ax.set_yscale('log')
+    ax.set_yscale('symlog')
+    ax.set_xscale('symlog')
     plt.savefig("Plot/" + plot_name + ".pdf")
 
     fig, ax = plt.subplots()
@@ -89,14 +93,13 @@ def test_all_and_plot(plot_name, num_observations=500, num_features=20, repeated
     plt.legend()
     plt.grid(True)
     ax.set_yscale('symlog')
-    if num_features >= 2000:
-        ax.set_xscale('symlog')
+    ax.set_xscale('symlog')
     plt.savefig("Plot/" + plot_name + "time" + ".pdf")
 
 
 def test_compare(plot_name, num_observations=500, num_features=20, repeated_features=False):
     # Dataset setup
-    initial_weights = np.ones(num_features + 1, dtype='float64')
+    initial_weights = np.zeros(num_features + 1, dtype='float64')
     dataset, solver = init(num_observations, num_features, initial_weights, repeated_features)
 
     # Test methods without exact line search selection
@@ -170,7 +173,8 @@ def test_compare(plot_name, num_observations=500, num_features=20, repeated_feat
     plt.ylabel('f(xk) - f*')
     plt.legend()
     plt.grid(True)
-    ax.set_yscale('log')
+    ax.set_yscale('symlog')
+    ax.set_xscale('symlog')
     plt.savefig("Plot/" + plot_name + "aels vs. scipy.pdf")
 
     # Check the exact search technique that has better performance in terms of time elapsed
@@ -221,50 +225,42 @@ def test_compare(plot_name, num_observations=500, num_features=20, repeated_feat
     plt.legend()
     plt.grid(True)
     ax.set_yscale('symlog')
-    if num_features == 2000:
-        ax.set_xscale('symlog')
+    ax.set_xscale('symlog')
     plt.savefig("Plot/" + plot_name + ":aels vs. scipy time" + ".pdf")
 
-# def check_equal_hessian(h1, h2):
-#     for i in range(h1.shape[0]):
-#         for j in range(h2.shape[0]):
-#             if h1[i, j] != h2[i, j]:
-#                 flag = False
-#             else:
-#                 flag = True
-#
-#     return flag
-#
-# def is_simmetric(h1):
-#     for i in range(h1.shape[0]):
-#         for j in range(h1.shape[1]):
-#             if np.allclose(h1[i, j],h1[j, i]):
-#                 flag = True
-#             else:
-#                 flag = False
-#
-#     return flag
+
+def hessian_check(h1, h2):
+    return np.allclose(h1,h2)
+def is_simmetric(h1):
+    for i in range(h1.shape[0]):
+        for j in range(h1.shape[1]):
+            if np.allclose(h1[i, j],h1[j, i]):
+                flag = True
+            else:
+                flag = False
+
+    return flag
 
 if __name__ == '__main__':
 
     # Here we test the L2-regularized istances of log-loss minimizing problems.(set lambda_reg=1) in the
     # Dataset module
 
-    # test_all_and_plot("p=20,regularized", 500, 20)
-    # test_all_and_plot("p=20,regularized,repeated_features",500,20,True)
-    # test_all_and_plot("p=200,regularized",500,200)
-    # test_all_and_plot("p=2000,regularized",500, 2000)
-    #test_compare("p=20,regularized", 500, 20)
-    #test_compare("p=20,regularized,repeated_features",500,20,True)
-    # test_compare("p=200,regularized",500,200)
-    # test_compare("p=2000,regularized", 500, 2000)
+    test_all_and_plot("p=20,regularized", 500, 20)
+    test_all_and_plot("p=20,regularized,repeated_features",500,20,True)
+    test_all_and_plot("p=200,regularized",500,200)
+    test_all_and_plot("p=2000,regularized",500, 2000)
+    test_compare("p=20,regularized", 500, 20)
+    test_compare("p=20,regularized,repeated_features",500,20,True)
+    test_compare("p=200,regularized",500,200)
+    test_compare("p=2000,regularized", 500, 2000)
 
     # To test the unregularized istances set the parameter lambda_reg = 0 in the Dataset module
 
-    test_all_and_plot("p=20,unregularized", 500, 20)
-    #test_all_and_plot("p=20,unregularized,repeated_features",500,20,True)
-    #test_all_and_plot("p=200,unregularized",500,200)
-    #test_all_and_plot("p=2000,unregularized",500, 2000)
+    # test_all_and_plot("p=20,unregularized", 500, 20)
+    # test_all_and_plot("p=20,unregularized,repeated_features",500,20,True)
+    # test_all_and_plot("p=200,unregularized",500,200)
+    # test_all_and_plot("p=2000,unregularized",500, 2000)
     # test_compare("p=20,unregularized", 500, 20)
     # test_compare("p=20,unregularized,repeated_features",500,20,True)
     # test_compare("p=200,unregularized", 500, 200)
@@ -284,7 +280,7 @@ if __name__ == '__main__':
     # print("time sn",time_sn)
     # print("time_sn_new_hess",time_sn_new_hess)
 
-    # features = 20000
+    # features = 2
     # data = np.random.rand(500, features)
     # labels = np.random.choice([-1, 1], 500)
     #
@@ -292,18 +288,22 @@ if __name__ == '__main__':
     # for i in range(10000):
     #     w = np.random.rand(features)
     #     start = timer()
-    #     l1 = dataset.compute_log_loss(w)
+    #     l1 = dataset.hessian(w)
     #     end = timer()
-    #     print("Time loss 1:",end-start)
+    #     print("Time hess 1:",end-start)
     #     start = timer()
-    #     l2 = dataset.compute_log_loss_new(w)
+    #     l2 = dataset.hessian_new(w)
     #     end = timer()
-    #     print("Time loss 2",end-start)
-    #     if l1 == l2:
-    #         print("equal loss")
+    #     print("Time new hess 2",end-start)
+    #     print(l1)
+    #     print(l2)
+    #     if hessian_check(l1,l2):
+    #         print("equal hess")
     #     else:
-    #         print("not equal loss")
+    #         print("not equal hess")
     #         break
+
+
 
 
 
