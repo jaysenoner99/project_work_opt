@@ -21,7 +21,7 @@ algorithm uses an exact line search technique, two different techniques were tes
 
 
 
-#References
+<h1>References</h1>
 
 [1]   Shea, B., & Schmidt, M. (2024). “Greedy Newton: Newton’s Method with Exact Line Search.” arXiv preprint. Retrieved from <a href="https://arxiv.org/abs/2401.06809">https://arxiv.org/abs/2401.06809</a>
 
