@@ -14,7 +14,7 @@ In this project we compare and test 6 different algorithms:
   <li>Hybrid Newton's method [1]</li>
 </ul>
 
-Those algorithms are tested for a logistic regression problem, in which we have $m$ training examples $'{x_i,y_i'}$ with dense features and binary labels, and the objective function to minimize is 
+Those algorithms are tested for a logistic regression problem, in which we have $m$ training examples $(x_i,y_i)$ with dense features and binary labels, and the objective function to minimize is 
 $
 f(w) = \sum_{i=1}^m \log(1 + \exp(-y_i w^T x_i))
 $
