@@ -15,7 +15,7 @@ In this project we compare and test 6 different algorithms:
 </ul>
 
 Those algorithms are tested for a logistic regression problem, in which we have $m$ training examples $(x_i,y_i)$ with dense features and binary labels, and the objective function to minimize is 
-$f(w) = \sum_{i=1}^m \log(1 + \exp(-y_i w^T x_i))$
+$$f(w) = \sum_{i=1}^m \log(1 + \exp(-y_i w^T x_i))$$
 
 All those algorithms are tested on a log-loss minimizing problem, considering both L2-regularized and unregularized istances. The dataset for the testing process is given by a Data generating process, as specified in section 3 of [1]. For the cases where the 
 algorithm uses an exact line search technique, two different techniques were tested: 
