@@ -1,6 +1,6 @@
 # Optimization Techniques for Machine Learning Project Work
 
-Source code for the project assignment associated with the course "Optimization Techniques for Machine Learning" instructed by Professor Matteo Lapucci.
+Source code for the project assignment associated with the course "Optimization Techniques for Machine Learning" instructed by Professor Matteo Lapucci for the second cycle degree in Artificial Intelligence at the University of Florence.
 
 The primary focus of this project is to compare various implementations of Newton methods, differing mainly in their approach to selecting the step size at each iteration.
 
