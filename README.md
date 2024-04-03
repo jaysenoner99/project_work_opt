@@ -1,5 +1,7 @@
 # Project Work Optimization Techniques for Machine Learning 
 
+
+\usepackage{amsmath}
 Soruce code for the project work assignment related to the course "Optimization techniques for machine learning" held by prof. Matteo Lapucci. 
 The main topic of this project work is related to the comparison of different implementations of Newton methods, where the difference between those variants is in the way the step size at each Newton iteration is selected.
 In this project we compare and test 6 different algorithms:
