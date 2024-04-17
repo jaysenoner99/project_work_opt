@@ -24,7 +24,7 @@ For the cases where the algorithm employs an exact line search technique, two di
 - minimize_scalar: A function implementing the Brent method for exact line search (imported from scipy)
 - AELS (Approximately Exact Line Search): An "exact" line search technique described in [2]
 
-For further technical detailts on what has been done on this project, please refer to the PWOPT pdf file
+For further technical details on what has been done on this project, please refer to the PWOPT pdf file
 ## References
 
 [1] Shea, B., & Schmidt, M. (2024). "Greedy Newton: Newton's Method with Exact Line Search." arXiv preprint. Retrieved from [https://arxiv.org/abs/2401.06809](https://arxiv.org/abs/2401.06809)
